@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Synoreads</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Courier+Prime&family=EB+Garamond:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon-180.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='reader.js') }}"></script>
+</head>
+<body>
+  <div class="toolbar">
+    <a class="toolbar-brand" href="/" title="Synoreads home"><img src="{{ url_for('static', filename='synoreads-seal.png') }}" alt="Synoreads" width="34" height="34"></a>
+    {% if session.user_id %}
+      <a href="{{ url_for('logout') }}" class="toolbar-btn">Log out ({{ session.username }})</a>
+      <a href="{{ url_for('home') }}" class="toolbar-btn">Library</a>
+    {% else %}
+      <a href="{{ url_for('login') }}" class="toolbar-btn">Log in</a>
+      <a href="{{ url_for('register') }}" class="toolbar-btn">Register</a>
+    {% endif %}
+    <a href="{{ url_for('all_tags') }}" class="toolbar-btn">Browse Tags</a>
+    <button onclick="toggleTheme()">Dark / Light</button>
+  </div>
+
+  <header class="masthead">
+    <h1>Synoreads</h1>
+    <p class="tagline">A quiet reading room for long novels.</p>
+  </header>
+
+  <div class="continue" id="continue" hidden></div>
+
+  {% if novels %}
+    {% for novel in novels %}
+      <div class="novel" data-novel-id="{{ novel['id'] }}">
+        <span class="shelf">Vol. {{ loop.index }}</span>
+        <div>
+          <strong><a href="/novel/{{ novel['id'] }}">{{ novel["title"] }}</a></strong>
+          <div class="author">{{ novel["author"] }}</div>
+          <div class="meta">{{ novel["chapter_count"] }} chapters</div>
+          {% if novel.tags %}
+            <div class="tags">
+              {% for tag in novel.tags %}
+                <a href="{{ url_for('tag_novels', tag_name=tag) }}" class="tag">{{ tag }}</a>
+              {% endfor %}
+            </div>
+          {% endif %}
+          {% if novel.is_following is defined and novel.is_following %}
+            <span class="follow-status following">✓ Following</span>
+          {% elif novel.is_following is defined and not novel.is_following %}
+            <span class="follow-status">Not following</span>
+          {% endif %}
+          {% if novel.last_read_chapter is not none and novel.last_read_chapter > 1 %}
+            <div class="progress">Last read: Chapter {{ novel.last_read_chapter }}</div>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>The shelves are empty. Add a novel to begin.</p>
+  {% endif %}
+
+  <footer class="colophon">
+    <span class="fleuron">&#10086;</span>
+    Set in Garamond, read by candlelight.
+  </footer>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ chapter["title"] }} - {{ novel["title"] }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Courier+Prime&family=Literata:ital,wght@0,400;1,400&family=Atkinson+Hyperlegible:ital,wght@0,400;1,400&family=EB+Garamond:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon-180.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='reader.js') }}"></script>
+</head>
+<body data-novel-id="{{ novel['id'] }}" data-novel-title="{{ novel['title'] }}" data-chapter="{{ chapter['number'] }}" data-chapter-title="{{ chapter['title'] }}" data-has-next="{{ 1 if has_next else 0 }}">
+  <div class="toolbar">
+    <a class="toolbar-brand" href="/" title="Synoreads home"><img src="{{ url_for('static', filename='synoreads-seal.png') }}" alt="Synoreads" width="34" height="34"></a>
+    {% if session.user_id %}
+      <a href="{{ url_for('logout') }}" class="toolbar-btn">Log out ({{ session.username }})</a>
+    {% else %}
+      <a href="{{ url_for('login') }}" class="toolbar-btn">Log in</a>
+      <a href="{{ url_for('register') }}" class="toolbar-btn">Register</a>
+    {% endif %}
+    <a href="{{ url_for('all_tags') }}" class="toolbar-btn">Browse Tags</a>
+    <button onclick="changeSize(-2)">A-</button>
+    <button onclick="changeSize(2)">A+</button>
+    <button onclick="changeLineHeight(-0.1)">LH-</button>
+    <button onclick="changeLineHeight(0.1)">LH+</button>
+    <button onclick="toggleAlign()">Align</button>
+    <button onclick="changePadding(-4)">Pad-</button>
+    <button onclick="changePadding(4)">Pad+</button>
+    <button onclick="cycleFont()" title="Change reading font">Font: <span id="fontLabel">Garamond</span></button>
+    <button onclick="toggleTheme()">Dark / Light</button>
+  </div>
+
+  <p class="back"><a href="/novel/{{ novel['id'] }}">&larr; {{ novel["title"] }}</a></p>
+
+  <header class="chapter-head">
+    {% if not (chapter["title"]|lower|trim).startswith("chapter") %}<div class="meta">Chapter {{ chapter["number"] }}</div>{% endif %}
+    <h2>{{ chapter["title"] }}</h2>
+    {% if novel.tags %}
+      <div class="novel-tags">
+        {% for tag in novel.tags %}
+          <a href="{{ url_for('tag_novels', tag_name=tag) }}" class="tag">{{ tag }}</a>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% if session.user_id %}
+      <div class="novel-actions">
+        {% if is_following %}
+          <a href="#" data-action="unfollow" data-novel-id="{{ novel['id'] }}" class="btn btn-small following">Following</a>
+        {% else %}
+          <a href="#" data-action="follow" data-novel-id="{{ novel['id'] }}" class="btn btn-small">Follow</a>
+        {% endif %}
+      </div>
+    {% endif %}
+    <span class="ornament">&#10086;</span>
+  </header>
+
+  <div class="reader">
+    {% for p in paragraphs %}
+      {# skip a first line that just repeats the chapter title, so the drop cap opens real text #}
+      {% if not (loop.first and p|trim|lower == chapter["title"]|trim|lower) %}
+        <p>{{ p }}</p>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  <div class="nav">
+    {% if has_prev %}
+      <a href="/novel/{{ novel['id'] }}/chapter/{{ chapter['number'] - 1 }}">&larr; Previous</a>
+    {% else %}<span class="spacer"></span>{% endif %}
+
+    {% if has_next %}
+      <a href="/novel/{{ novel['id'] }}/chapter/{{ chapter['number'] + 1 }}">Next &rarr;</a>
+    {% else %}<span class="spacer"></span>{% endif %}
+  </div>
+
+  <div class="float-nav" id="floatNav">
+    {% if has_prev %}<a href="/novel/{{ novel['id'] }}/chapter/{{ chapter['number'] - 1 }}" title="Previous chapter" aria-label="Previous chapter">&larr;</a>{% else %}<span></span>{% endif %}
+    {% if has_next %}<a href="/novel/{{ novel['id'] }}/chapter/{{ chapter['number'] + 1 }}" title="Next chapter" aria-label="Next chapter">&rarr;</a>{% else %}<span></span>{% endif %}
+  </div>
+
+  <footer class="colophon">
+    <span class="fleuron">&#10086;</span>
+    Set in Garamond, read by candlelight.
+  </footer>
+</body>
+</html>
